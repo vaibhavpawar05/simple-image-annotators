@@ -1,1 +1,1 @@
-Miniaml web app to annotate images with points
+Minimal web app to annotate images with points
