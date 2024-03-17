@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Annotate images with points</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script>
+
+        // Define keyboead shortcuts for buttons
+        document.addEventListener("keydown", function(event) {
+            switch(event.key) {
+                case "ArrowLeft":
+                    previousImage();
+                    break;
+                case " ":
+                    reset();
+                    break;
+                case "ArrowRight":
+                    nextImage();
+                    break;
+            }
+        });
+
+        function nextImage() {
+            $('.dots').remove();
+            $.ajax({
+                //url: '/next',
+                url: "{{url_for('next_image')}}",
+                type: 'POST',
+                success: function(response) {
+                    $('#image').attr('src', response.image_path);
+                }
+            });
+        }
+        
+        function previousImage() {
+            $('.dots').remove();
+            $.ajax({
+                //url: '/previous',
+                url: "{{url_for('previous_image')}}",
+                type: 'POST',
+                success: function(response) {
+                    $('#image').attr('src', response.image_path);
+                }
+            });
+        }
+        
+        function recordCoordinates(event) {
+            var x = event.offsetX;
+            var y = event.offsetY;
+
+            // Use clientX/Y so that the coordinates work with absolute positioning
+            const xc = event.clientX;
+            const yc = event.clientY;
+            const size = 3;
+
+            // Create a new div element
+            var newDiv = document.createElement("div");
+
+            newDiv.className = "dots"
+
+            // Set properties of the new div based on x and y coordinates
+            newDiv.style.position = "absolute";
+            newDiv.style.left = xc + "px";
+            newDiv.style.top = yc + "px";
+
+            // Add any other properties or content to the div as needed
+            newDiv.style.width = `${size}px`;
+            newDiv.style.height = `${size}px`;
+            newDiv.style.backgroundColor = "black";
+
+            // Get the parent of the image element
+            var parentElement = event.target.parentNode;
+
+            // Append the new div to the parent
+            parentElement.appendChild(newDiv);
+            
+            $.ajax({
+                //url: '/record_coordinates',
+                url: "{{url_for('record_coordinates')}}",
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({'x': x, 'y': y}),
+                success: function(response) {
+                    // Handle the API response if needed
+                }
+            });
+        }
+
+        function reset() {
+            location.reload();
+            $.ajax({
+                //url: '/reset',
+                url: "{{url_for('reset')}}",
+                type: 'POST',
+                success: function(response) {
+                }
+            });
+        }
+    </script>
+
+    <style>
+        .parent {
+        /*position: relative;
+        top: 0;
+        left: 0;*/
+        display: flex;
+        justify-content: center;
+        }
+        .buttons {
+        display: flex;
+        justify-content: center;
+        }
+        .image {
+        position: relative;
+        top: 0;
+        left: 0;
+        }
+    </style>
+
+</head>
+<body>
+    <div class="parent">
+        <img class="image" id="image" src="{{ image_path }}" onclick="recordCoordinates(event)" style="max-height: {{ max_height }}px;" >
+        <!-- <img class="image1" id="image" src="{{ url_for('static', filename= image_path) }}" onclick="recordCoordinates(event)" style="max-height: {{ max_height }}px;" > -->
+    </div>
+    <br>
+    <div class="buttons">
+        <button onclick="previousImage()">Previous</button>
+        <button onclick="nextImage()">Next</button>
+        <!--<button onclick="location.reload()">Reset</button>-->
+        <button onclick="reset()">Reset</button>
+    </div>
+</body>
+</html>
